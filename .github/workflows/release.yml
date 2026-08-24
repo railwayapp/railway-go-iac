@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - run: go test ./...
+      - run: go vet ./...
+
+  github-release:
+    name: GitHub release
+    needs: [test]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${{ github.ref_name }}" --generate-notes --verify-tag
+
+  goproxy:
+    name: Populate Go module proxy
+    needs: [github-release]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch module into proxy.golang.org
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          curl -fsS "https://proxy.golang.org/github.com/railwayapp/railway-go-iac/@v/${TAG}.info"
+          curl -fsS "https://sum.golang.org/lookup/github.com/railwayapp/railway-go-iac@${TAG}"

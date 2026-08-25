@@ -1,10 +1,10 @@
-// Package iac is a thin Railway Infrastructure as Code authoring mirror.
+// Package railway is a thin Railway Infrastructure as Code authoring mirror.
 // It builds the same conceptual RailwayGraph as railway/iac (TypeScript).
 // Plan/apply stay in the CLI; this package has no Config as Code knowledge.
 //
 // Prefer one file that owns the whole environment. Declare
 // `const Partial = "api"` only when split repos cannot share a file.
-package iac
+package railway
 
 import (
 	"crypto/sha256"
